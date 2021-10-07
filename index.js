@@ -3,6 +3,7 @@
  * run by writing `node index.js` in your console
  */
 //https://codepen.io/anon/pen/VELdvJ?editors=1111
+//https://gist.github.com/codesections/10466892dd9e232500a7450929c16fac
 const inquirer = require('inquirer');
 const questions = require("./config/config.js");
 
@@ -10,80 +11,93 @@ console.log('Hi, welcome to this small and simple robot task.');
 console.log('In order to make me move you will have to answer some simple questions.')
 
 inquirer.prompt(questions).then((answers) => {
-	console.log('\nThis is the following input:');
+	console.log('\nThis is your input values:');
 	//Run function to calculate		
-	console.log(JSON.stringify(answers));
-	console.log(doNavigation(answers));
+	//console.log(JSON.stringify(answers));
 
-	const initRobot = new Robot(1, 0, 0);
+	let startingPosition = answers.start.split("");
+	let grid = answers.grid.split("");
+	let horizontalBounds = parseInt(grid[0]);
+	let verticalBounds = parseInt(grid[1]);
+	const initRobot = new Robot(parseInt(startingPosition[0]), parseInt(startingPosition[1]), startingPosition[2], horizontalBounds, verticalBounds);
+	console.log(moveRobot(answers, initRobot,));
+	console.log('Robots current position is ' + initRobot.x + initRobot.y + initRobot.direction);
 });
 
 
 class Robot {
-	constructor(x, y, direction) {
+	constructor(x, y, currentPos, horizontalBounds, verticalBounds) {
+		this.dictionary = ['N', 'W', 'S', 'E'];
 		this.x = x;
 		this.y = y;
-		this.direction = direction;
+		this.currentPos = this.dictionary.indexOf(currentPos);
+		this.direction = this.dictionary[this.currentPos];
+		this.horizontalBounds = horizontalBounds;
+		this.verticalBounds = verticalBounds;
 	}
-	/* var direction = ['N', 'E', 'S', 'W']; */
-	/**
-	 * The remainder operator (%) returns the remainder 
-	 * left over when one operand is divided by a second operand. 
-	 * It always takes the sign of the dividend.
-	 */
-	turnLeft() {
-		this.direction = (this.direction + 2) % 4;
+	rotationLeft() {
+		/* console.log('CurrentPos ' + this.currentPos);
+		console.log('While rotating left currentpos will be ' + (this.currentPos + 3) % 4 + '\n') */
+		this.currentPos = (this.currentPos + 3) % 4;
+		console.log('Rotate left ' + this.currentPos);
+		console.log('Direction ' + this.direction);
 	}
-
-	turnRight() {
-		this.idx = (this.idx + 1) % 4;
-		this.logMessage('turned right');
+	rotationRight() {
+		/* 	console.log('CurrentPos ' + this.currentPos);
+			console.log('\nWhile rotating right currentpos will be ' + (this.currentPos + 1) % 4 + '\n') */
+		this.currentPos = (this.currentPos + 1) % 4;
+		console.log('Rotate right ' + this.currentPos);
+		console.log('Direction ' + this.direction);
 	}
-
-	moveForward() {
+	movingForward() {
 		const prevX = this.x;
 		const prevY = this.y;
-
-		if (this.idx % 2 === 1) {
-			this.x += (this.idx === 1 ? 1 : -1);
+		if (this.currentPos % 2 === 1) {
+			this.x += (this.currentPos === 1 ? 1 : -1);
 		} else {
-			this.y += (this.idx === 0 ? -1 : 1);
+			this.y += (this.currentPos === 0 ? -1 : 1);
 		}
 
-		if ((this.x < 0 || this.x > 9) || (this.y < 0 || this.y > 9)) {
-			console.log(`Can't perform move forward command`);
-			console.log(`Rover has reached the boundaries of the map`);
-			console.log('------------------------------------------------------------');
+		if ((this.x < 1 || this.x > this.horizontalBounds) || (this.y < 1 || this.y > this.verticalBounds)) {
+			console.log('\nRobot has reached the boundaries of the map');
 			this.x = prevX;
 			this.y = prevY;
-		} else {
-			this.updateTravelLog(prevX, prevY);
-			this.logMessage(`moved towards ${this.CARDINAL[this.idx]}`);
+			return { x: this.x, y: this.y, currentPos: this.currentPos, direction: this.direction };
 		}
 	}
+
 }
 
+function moveRobot(answers, initRobot) {
 
-function doNavigation(answers) {
+	let navigation = answers.navigation.toLowerCase().split("");
 
-	let navigation = answers.navigation.split("");
-	let grid = answers.grid;
-	let startPosition = answers.start;
+	let forward = 0,
+		left = 0,
+		right = 0;
+
+	let movement = "";
 
 	for (let i = 0; i < navigation.length; i++) {
-		console.log(navigation[i]);
-		navigation[i].toLowerCase();
+		if (navigation[i] === 'f') {
+			forward++;
+			let noMoreMoves = initRobot.movingForward()
+			if (noMoreMoves) {
+				//console.log("Breaking out: movement went to be: " + forward + " steps forward, " + left + " steps left, " + right + " steps right.")
+				console.log(JSON.stringify(noMoreMoves));
+				break;
+			}
+		}
+		else if (navigation[i] === 'l') {
+			left++;
+			initRobot.rotationLeft();
+		}
+		else if (navigation[i] === 'r') {
+			right++;
+			initRobot.rotationRight();
+		}
 	}
+	movement += "The robot moved a total of " + forward + " steps forward, " + left + " steps left, " + right + " steps right."
 
-	return "test";
+	return movement;
 }
-/* function moveRobot(position){
-	switch (key) {
-		case position === "L":
-
-			break;
-
-		default:
-			break;
-	}
-} */

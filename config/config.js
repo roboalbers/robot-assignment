@@ -19,7 +19,7 @@ module.exports = [
 		message: "Enter the starting position along with the orientation for the robot",
 		default: "33E",
 		validate(value) {
-			const matchValue = value.match(/^[1-9]{2}[Nn,Ee,Ss,Ww]{1}/g);
+			const matchValue = value.match(/^[1-9]{2}[N,E,S,W]{1}/g);
 			if (matchValue) {
 				return true;
 			}
