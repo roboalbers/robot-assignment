@@ -7,7 +7,7 @@
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
-	"author": "Robert Albers (hello@robertalber.se)",
+	"author": "Robert Albers (hello@robertalbers.se)",
 	"license": "ISC",
 	"dependencies": {
 		"inquirer": "^8.2.0"

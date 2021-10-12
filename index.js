@@ -2,102 +2,69 @@
  * Robot assignment
  * run by writing `node index.js` in your console
  */
-//https://codepen.io/anon/pen/VELdvJ?editors=1111
-//https://gist.github.com/codesections/10466892dd9e232500a7450929c16fac
-const inquirer = require('inquirer');
-const questions = require("./config/config.js");
+const inquirer = require("inquirer");
+const questions = require("./config/config");
+const movements = require("./modules/movements");
 
-console.log('Hi, welcome to this small and simple robot task.');
-console.log('In order to make me move you will have to answer some simple questions.')
+console.log("Hi and welcome!");
+console.log("In order to get this robot moving, you need to complete the input fields with grid fields, starting position and commands.")
 
 inquirer.prompt(questions).then((answers) => {
-	console.log('\nThis is your input values:');
-	//Run function to calculate		
-	//console.log(JSON.stringify(answers));
 
-	let startingPosition = answers.start.split("");
-	let grid = answers.grid.split("");
-	let horizontalBounds = parseInt(grid[0]);
-	let verticalBounds = parseInt(grid[1]);
-	const initRobot = new Robot(parseInt(startingPosition[0]), parseInt(startingPosition[1]), startingPosition[2], horizontalBounds, verticalBounds);
-	console.log(moveRobot(answers, initRobot,));
-	console.log('Robots current position is ' + initRobot.x + initRobot.y + initRobot.direction);
+	const startingPosition = answers.start.split("");
+	const grid = answers.grid.split("");
+	const horizontalBounds = parseInt(grid[0]);
+	const verticalBounds = parseInt(grid[1]);
+
+	const initRobot = new Robot(parseInt(startingPosition[0]), parseInt(startingPosition[1]), startingPosition[2].toUpperCase(), horizontalBounds, verticalBounds);
+
+	console.log(movements.moveRobot(answers, initRobot));
+	console.log("The robot's current position is " + initRobot.x + " " + initRobot.y + " " + initRobot.dictionary[initRobot.currentDir]);
 });
 
-
+/**
+ * Robot class for handling inputs 
+ */
 class Robot {
-	constructor(x, y, currentPos, horizontalBounds, verticalBounds) {
-		this.dictionary = ['N', 'W', 'S', 'E'];
+	constructor(x, y, currentDir, horizontalBounds, verticalBounds) {
+		this.dictionary = ["N", "E", "S", "W"];
 		this.x = x;
 		this.y = y;
-		this.currentPos = this.dictionary.indexOf(currentPos);
-		this.direction = this.dictionary[this.currentPos];
+		this.currentDir = this.dictionary.indexOf(currentDir);
 		this.horizontalBounds = horizontalBounds;
 		this.verticalBounds = verticalBounds;
 	}
-	rotationLeft() {
-		/* console.log('CurrentPos ' + this.currentPos);
-		console.log('While rotating left currentpos will be ' + (this.currentPos + 3) % 4 + '\n') */
-		this.currentPos = (this.currentPos + 3) % 4;
-		console.log('Rotate left ' + this.currentPos);
-		console.log('Direction ' + this.direction);
+	left() {
+		if (this.currentDir !== 0) {
+			this.currentDir = this.currentDir - 1;
+		} else {
+			this.currentDir = 3;
+		}
 	}
-	rotationRight() {
-		/* 	console.log('CurrentPos ' + this.currentPos);
-			console.log('\nWhile rotating right currentpos will be ' + (this.currentPos + 1) % 4 + '\n') */
-		this.currentPos = (this.currentPos + 1) % 4;
-		console.log('Rotate right ' + this.currentPos);
-		console.log('Direction ' + this.direction);
+	right() {
+		if (this.currentDir !== 3) {
+			this.currentDir = this.currentDir + 1;
+		} else {
+			this.currentDir = 0;
+		}
 	}
-	movingForward() {
+	forward() {
 		const prevX = this.x;
 		const prevY = this.y;
-		if (this.currentPos % 2 === 1) {
-			this.x += (this.currentPos === 1 ? 1 : -1);
+
+		if (this.currentDir === 1 || this.currentDir === 3) {
+			this.x += (this.currentDir === 1 ? 1 : -1);
 		} else {
-			this.y += (this.currentPos === 0 ? -1 : 1);
+			this.y += (this.currentDir === 0 ? 1 : -1);
 		}
 
-		if ((this.x < 1 || this.x > this.horizontalBounds) || (this.y < 1 || this.y > this.verticalBounds)) {
-			console.log('\nRobot has reached the boundaries of the map');
+		//Is the robot outside the grid after the last step.
+		if ((this.x < 0 || this.x > this.horizontalBounds) || (this.y < 0 || this.y > this.verticalBounds)) {
+			console.log("\nThe robot has unfortunately reached the boundaries of the map");
 			this.x = prevX;
 			this.y = prevY;
-			return { x: this.x, y: this.y, currentPos: this.currentPos, direction: this.direction };
+			return true;
 		}
 	}
 
-}
-
-function moveRobot(answers, initRobot) {
-
-	let navigation = answers.navigation.toLowerCase().split("");
-
-	let forward = 0,
-		left = 0,
-		right = 0;
-
-	let movement = "";
-
-	for (let i = 0; i < navigation.length; i++) {
-		if (navigation[i] === 'f') {
-			forward++;
-			let noMoreMoves = initRobot.movingForward()
-			if (noMoreMoves) {
-				//console.log("Breaking out: movement went to be: " + forward + " steps forward, " + left + " steps left, " + right + " steps right.")
-				console.log(JSON.stringify(noMoreMoves));
-				break;
-			}
-		}
-		else if (navigation[i] === 'l') {
-			left++;
-			initRobot.rotationLeft();
-		}
-		else if (navigation[i] === 'r') {
-			right++;
-			initRobot.rotationRight();
-		}
-	}
-	movement += "The robot moved a total of " + forward + " steps forward, " + left + " steps left, " + right + " steps right."
-
-	return movement;
 }

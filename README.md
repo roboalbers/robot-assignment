@@ -1,2 +1,2 @@
 # robot-assignment
-Small cli application for navigating a robot on a grid.
+Small node application for navigating a fictive robot on a grid.
